@@ -1,5 +1,5 @@
 async function getMusicComments(musicItem, limit = 20) {
-    const url = "https://zm.armoe.cn/comment/music";
+    const url = "https://163api.qijieya.cn/comment/music";
     let allComments = [];
     let offset = 0;
     let before = null;

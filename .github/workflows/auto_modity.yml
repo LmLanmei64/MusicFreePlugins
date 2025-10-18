@@ -12,40 +12,79 @@ jobs:
   check-upstream:
     runs-on: ubuntu-latest
     outputs:
-      has_update: ${{ steps.check-update.outputs.has_update }}
+      has_update: ${{ steps.check-version.outputs.has_update }}
+      upstream_version: ${{ steps.check-version.outputs.upstream_version }}
+      current_version: ${{ steps.check-version.outputs.current_version }}
     steps:
-      - name: Check upstream repository status
-        id: check-update
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Check upstream and current plugin version
+        id: check-version
         run: |
           # 安装依赖
           sudo apt-get update
           sudo apt-get install -y jq curl
           
-          # 获取上游仓库最新 commit SHA
-          UPSTREAM_SHA=$(curl -s "https://api.github.com/repos/ThomasBy2025/musicfree/commits/main" | jq -r .sha)
+          # 下载上游插件文件
+          curl -s -o upstream_wy.js "https://ghproxy.cn/raw.githubusercontent.com/ThomasBy2025/musicfree/main/plugins/wy.js"
           
-          # 获取上次记录的 commit SHA
-          if [ -f .last_commit ]; then
-            LAST_SHA=$(cat .last_commit)
-          else
-            LAST_SHA=""
-          fi
+          # 使用 Node.js 提取版本号
+          UPSTREAM_VERSION=$(node -e "
+          try {
+            const fs = require('fs');
+            const content = fs.readFileSync('upstream_wy.js', 'utf-8');
+            const versionMatch = content.match(/version\s*:\s*['\"]([^'\"]+)['\"]/);
+            if (versionMatch && versionMatch[1]) {
+              console.log(versionMatch[1]);
+            } else {
+              console.log('unknown');
+            }
+          } catch (e) {
+            console.log('error');
+          }
+          ")
           
-          # 比较 commit SHA
-          if [ "$UPSTREAM_SHA" != "$LAST_SHA" ]; then
+          # 动态获取当前插件版本号
+          CURRENT_VERSION=$(node -e "
+          try {
+            const fs = require('fs');
+            const content = fs.readFileSync('plugins/wy.js', 'utf-8');
+            const versionMatch = content.match(/version\s*:\s*['\"]([^'\"]+)['\"]/);
+            if (versionMatch && versionMatch[1]) {
+              console.log(versionMatch[1]);
+            } else {
+              console.log('unknown');
+            }
+          } catch (e) {
+            console.log('error');
+          }
+          ")
+          
+          echo "上游版本: $UPSTREAM_VERSION"
+          echo "当前版本: $CURRENT_VERSION"
+          
+          # 比较版本号
+          if [ "$UPSTREAM_VERSION" != "$CURRENT_VERSION" ] && [ "$UPSTREAM_VERSION" != "unknown" ] && [ "$UPSTREAM_VERSION" != "error" ]; then
             echo "has_update=true" >> $GITHUB_OUTPUT
-            echo "New update detected in upstream repository"
+            echo "上游版本更新，需要更新插件"
           else
             echo "has_update=false" >> $GITHUB_OUTPUT
-            echo "No updates in upstream repository"
+            echo "版本相同，无需更新"
           fi
           
-          # 保存当前 SHA 供下次比较
-          echo "$UPSTREAM_SHA" > .last_commit
+          echo "upstream_version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          # 保存版本信息供后续使用
+          echo "UPSTREAM_VERSION=$UPSTREAM_VERSION" >> $GITHUB_ENV
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
 
   update-plugin:
     needs: check-upstream
-    if: ${{ needs.check-upstream.outputs.has_update == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (needs.check-upstream.outputs.has_update == 'true' && github.event_name != 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -79,8 +118,8 @@ jobs:
       - name: Download function definitions
         run: |
           # 使用新的 URL 下载函数定义文件
-          wget -O getLyric.txt "https://ghproxy.cn/raw.githubusercontent.com/LmLanmei64/MusicFreePlugins/master/getLyric.txt"
-          wget -O getMusicComments.txt "https://ghproxy.cn/raw.githubusercontent.com/LmLanmei64/MusicFreePlugins/master/getMusicComments.txt"
+          wget -O getLyric.txt "https://ghproxy.cn/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getLyric.txt"
+          wget -O getMusicComments.txt "https://ghproxy.cn/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getMusicComments.txt"
           
           # 验证下载结果
           for file in getLyric.txt getMusicComments.txt; do
@@ -149,34 +188,21 @@ jobs:
             console.warn('未找到 appVersion，已跳过替换');
           }
           
-          // 添加/更新 description，确保在 module.exports 对象中
-          const descText = "本插件修改于[ThomasBy2025/musicfree](https://github.com/ThomasBy2025/musicfree)\\n配合[xujin621/Photo](https://gitee.com/xujin621/Photo)中的\"元力WY\"插件可播放会员歌曲的同时实现所有功能（需要在musicfree将该插件\"音源重定向\"为\"元力WY\"）";
-          
-          // 在 module.exports 对象中添加 description 字段
-          if (modifiedContent.includes("module.exports")) {
-            // 在 module.exports 对象中查找合适的位置添加 description
-            // 确保添加在 srcUrl 之后，并且后面有逗号
-            const descRegex = /(srcUrl\s*:\s*['"][^'"]*['"][\s,]*)/;
+          // 修改 description 内容
+          const descRegex = /(description\s*:\s*['"])([\s\S]*?)(['"])/;
+          if (descRegex.test(modifiedContent)) {
+            let desc = modifiedContent.match(descRegex)[2];
             
-            if (descRegex.test(modifiedContent)) {
-              // 在 srcUrl 后面添加 description
-              modifiedContent = modifiedContent.replace(
-                descRegex,
-                `$1\n  description: '${descText}',`
-              );
-              console.log('description 已添加到 srcUrl 后面');
-            } else {
-              // 如果找不到 srcUrl，则添加到 module.exports 对象中
-              modifiedContent = modifiedContent.replace(
-                /(module\.exports\s*=\s*\{)([\s\S]*?)(\n\})/,
-                `$1$2,\n  description: '${descText}', $3`
-              );
-              console.log('description 添加到 module.exports 对象中');
-            }
+            // 修改 "By: Thomas喲" 为 "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓"
+            desc = desc.replace("By: Thomas喲", "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓");
+            
+            // 在 "修复酷我渠道，增加解析" 后添加指定内容
+            desc = desc.replace("修复酷我渠道，增加解析", "修复酷我渠道，增加解析（此修改版修改了歌词和评论获取api）");
+            
+            modifiedContent = modifiedContent.replace(descRegex, `$1${desc}$3`);
+            console.log('description 修改成功');
           } else {
-            // 如果找不到 module.exports，在文件末尾添加
-            modifiedContent += `\nmodule.exports = { description: '${descText}' };\n`;
-            console.log('description 添加到文件末尾');
+            console.warn('未找到 description，已跳过替换');
           }
           
           // 写入修改后的文件
@@ -206,24 +232,18 @@ jobs:
             echo "::warning::appVersion 替换失败或未找到"
           fi
           
-          # 检查 description 是否添加成功
-          if ! grep -q 'description:' wy_modified.js; then
-            echo "::error::description 添加失败"
-            exit 1
-          fi
-          
-          # 检查 description 后面是否有逗号
-          if ! grep -q 'description: .*,' wy_modified.js; then
-            echo "::error::description 后面缺少逗号"
-            exit 1
+          # 检查 description 是否修改成功
+          if ! grep -q '此修改版插件 By:Lm_蓝莓' wy_modified.js; then
+            echo "::warning::description 修改失败"
           fi
           
           mv wy_modified.js wy.js
           echo "函数替换成功，新文件大小: $(wc -c <wy.js) 字节"
+
       - name: Replace srcUrl
         run: |
           # 设置新的 srcUrl
-          new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
+          new_srcUrl="https://testingcf.jsdelivr.net/gh/Lmlanmei64/MusicFreePlugins@master/plugins/wy.js"
           
           # 使用 Node.js 安全替换 srcUrl
           node -e "const fs = require('fs'); 
@@ -255,15 +275,11 @@ jobs:
           # 强制添加文件
           git add -f plugins/wy.js
           
-          # 添加 .last_commit 文件（如果存在）
-          if [ -f .last_commit ]; then
-            git add .last_commit
-          fi
-          
-          # 强制提交，无论是否有更改
-          COMMIT_MSG="chore: auto update wy.js plugin"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            COMMIT_MSG="chore: manual update wy.js plugin"
+          # 根据更新状态设置提交信息
+          if [ "${{ needs.check-upstream.outputs.has_update }}" = "true" ]; then
+            COMMIT_MSG="chore: update wy.js plugin from ${{ needs.check-upstream.outputs.current_version }} to ${{ needs.check-upstream.outputs.upstream_version }}"
+          else
+            COMMIT_MSG="chore: manual update wy.js plugin (version: ${{ needs.check-upstream.outputs.current_version }})"
           fi
           
           git commit --allow-empty -m "$COMMIT_MSG [skip ci]"

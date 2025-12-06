@@ -270,7 +270,7 @@ jobs:
       echo "::error::srcUrl 替换失败"
       exit 1
     fi
-    
+
       - name: Upload modified file
         run: |
           mkdir -p plugins

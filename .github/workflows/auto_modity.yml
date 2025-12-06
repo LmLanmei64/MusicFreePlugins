@@ -243,7 +243,7 @@ jobs:
       - name: Replace srcUrl
         run: |
           # 设置新的 srcUrl
-          new_srcUrl="https://testingcf.jsdelivr.net/gh/Lmlanmei64/MusicFreePlugins@master/plugins/wy.js"
+          new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js
           
           # 使用 Node.js 安全替换 srcUrl
           node -e "const fs = require('fs'); 

@@ -193,10 +193,10 @@ jobs:
           if (descRegex.test(modifiedContent)) {
             let desc = modifiedContent.match(descRegex)[2];
             
-            // 修改 "By: Thomas喲" 为 "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓"
+            # 修改 "By: Thomas喲" 为 "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓"
             desc = desc.replace("By: Thomas喲", "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓");
             
-            // 在 "修复酷我渠道，增加解析" 后添加指定内容
+            # 在 "修复酷我渠道，增加解析" 后添加指定内容
             desc = desc.replace("修复酷我渠道，增加解析", "修复酷我渠道，增加解析（此修改版修改了歌词和评论获取api）");
             
             modifiedContent = modifiedContent.replace(descRegex, `$1${desc}$3`);
@@ -241,35 +241,35 @@ jobs:
           echo "函数替换成功，新文件大小: $(wc -c <wy.js) 字节"
 
       - name: Replace srcUrl
-      run: |
-        # 设置新的 srcUrl
-        new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
-        
-        # 创建替换脚本文件
-        cat > replace-srcurl.js << 'EOF'
-        const fs = require('fs');
-        const newSrcUrl = "$new_srcUrl";
-        
-        const content = fs.readFileSync('wy.js', 'utf-8');
-        const newContent = content.replace(/(srcUrl:\s*['"])([^'"]+)(['"])/, `$1${newSrcUrl}$3`);
-        
-        fs.writeFileSync('wy.js', newContent);
-        console.log('srcUrl 替换完成，新URL:', newSrcUrl);
-        EOF
-        
-        # 替换变量占位符
-        sed -i "s|\$new_srcUrl|${new_srcUrl}|g" replace-srcurl.js
-        
-        # 运行替换脚本
-        node replace-srcurl.js
-        
-        # 验证替换结果
-        if grep -q "$new_srcUrl" wy.js; then
-          echo "srcUrl 替换成功"
-        else
-          echo "::error::srcUrl 替换失败"
-          exit 1
-        fi
+        run: |
+          # 设置新的 srcUrl
+          new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
+          
+          # 创建替换脚本文件
+          cat > replace-srcurl.js << 'EOF'
+          const fs = require('fs');
+          const newSrcUrl = "$new_srcUrl";
+          
+          const content = fs.readFileSync('wy.js', 'utf-8');
+          const newContent = content.replace(/(srcUrl:\s*['"])([^'"]+)(['"])/, `$1${newSrcUrl}$3`);
+          
+          fs.writeFileSync('wy.js', newContent);
+          console.log('srcUrl 替换完成，新URL:', newSrcUrl);
+          EOF
+          
+          # 替换变量占位符
+          sed -i "s|\$new_srcUrl|${new_srcUrl}|g" replace-srcurl.js
+          
+          # 运行替换脚本
+          node replace-srcurl.js
+          
+          # 验证替换结果
+          if grep -q "$new_srcUrl" wy.js; then
+            echo "srcUrl 替换成功"
+          else
+            echo "::error::srcUrl 替换失败"
+            exit 1
+          fi
 
       - name: Upload modified file
         run: |

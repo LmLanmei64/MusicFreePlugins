@@ -805,8 +805,7 @@ module.exports = {
     appVersion: ">0.2.0-alpha",
     srcUrl: "https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js",
     cacheControl: "no-store",
-    description: "## 原插件 By: Thomas喲
-此修改版插件 By:Lm_蓝莓  \n#### 版本: 2025.09.14  \n修复歌单只能获取10首歌的bug，细节调整  \n修复酷我渠道，增加解析（此修改版修改了歌词和评论获取api）  \n#### 音源重定向  \n支持的插件如下  \n网易云音乐, 小芸音乐, 简繁音乐, 元力WY  \n#### Bug反馈  \n[点我加入反馈群](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=x8r6m0bYYon_pCgT0BRc1ohwZmkkY61Q&authKey=DpmUioCvx45WjRRBnbRT2DsJ7LL6DNY3uau%2BFKPgR%2FSKz4EgYqUjEU5tJNi%2BkNPl&noverify=0&group_code=365976134)  \n#### 支持作者  \n![支持作者](https://raw.githubusercontent.com/ThomasBy2025/hikerview/refs/heads/main/mm_facetoface_collect_qrcode_1757315185814.png)",
+    description: "## 原插件 By: Thomas喲 \n此修改版插件 By:Lm_蓝莓  \n#### 版本: 2025.09.14  \n修复歌单只能获取10首歌的bug，细节调整  \n修复酷我渠道，增加解析（此修改版修改了歌词和评论获取api）  \n#### 音源重定向  \n支持的插件如下  \n网易云音乐, 小芸音乐, 简繁音乐, 元力WY  \n#### Bug反馈  \n[点我加入反馈群](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=x8r6m0bYYon_pCgT0BRc1ohwZmkkY61Q&authKey=DpmUioCvx45WjRRBnbRT2DsJ7LL6DNY3uau%2BFKPgR%2FSKz4EgYqUjEU5tJNi%2BkNPl&noverify=0&group_code=365976134)  \n#### 支持作者  \n![支持作者](https://raw.githubusercontent.com/ThomasBy2025/hikerview/refs/heads/main/mm_facetoface_collect_qrcode_1757315185814.png)",
     hints: {
         importMusicSheet: [
             "网易云：APP点击分享，然后复制链接",

@@ -240,36 +240,36 @@ jobs:
           mv wy_modified.js wy.js
           echo "函数替换成功，新文件大小: $(wc -c <wy.js) 字节"
 
-  - name: Replace srcUrl
-  run: |
-    # 设置新的 srcUrl
-    new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
-    
-    # 创建替换脚本文件
-    cat > replace-srcurl.js << 'EOF'
-    const fs = require('fs');
-    const newSrcUrl = "$new_srcUrl";
-    
-    const content = fs.readFileSync('wy.js', 'utf-8');
-    const newContent = content.replace(/(srcUrl:\s*['"])([^'"]+)(['"])/, `$1${newSrcUrl}$3`);
-    
-    fs.writeFileSync('wy.js', newContent);
-    console.log('srcUrl 替换完成，新URL:', newSrcUrl);
-    EOF
-    
-    # 替换变量占位符
-    sed -i "s|\$new_srcUrl|${new_srcUrl}|g" replace-srcurl.js
-    
-    # 运行替换脚本
-    node replace-srcurl.js
-    
-    # 验证替换结果
-    if grep -q "$new_srcUrl" wy.js; then
-      echo "srcUrl 替换成功"
-    else
-      echo "::error::srcUrl 替换失败"
-      exit 1
-    fi
+      - name: Replace srcUrl
+      run: |
+        # 设置新的 srcUrl
+        new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
+        
+        # 创建替换脚本文件
+        cat > replace-srcurl.js << 'EOF'
+        const fs = require('fs');
+        const newSrcUrl = "$new_srcUrl";
+        
+        const content = fs.readFileSync('wy.js', 'utf-8');
+        const newContent = content.replace(/(srcUrl:\s*['"])([^'"]+)(['"])/, `$1${newSrcUrl}$3`);
+        
+        fs.writeFileSync('wy.js', newContent);
+        console.log('srcUrl 替换完成，新URL:', newSrcUrl);
+        EOF
+        
+        # 替换变量占位符
+        sed -i "s|\$new_srcUrl|${new_srcUrl}|g" replace-srcurl.js
+        
+        # 运行替换脚本
+        node replace-srcurl.js
+        
+        # 验证替换结果
+        if grep -q "$new_srcUrl" wy.js; then
+          echo "srcUrl 替换成功"
+        else
+          echo "::error::srcUrl 替换失败"
+          exit 1
+        fi
 
       - name: Upload modified file
         run: |

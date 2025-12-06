@@ -194,7 +194,7 @@ jobs:
             let desc = modifiedContent.match(descRegex)[2];
             
             // 修改 "By: Thomas喲" 为 "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓"
-            desc = desc.replace("By: Thomas喲", "原插件 By: Thomas喲\n此修改版插件 By:Lm_蓝莓");
+            desc = desc.replace("By: Thomas喲", "原插件 By: Thomas喲，此修改版插件 By:Lm_蓝莓");
             
             // 在 "修复酷我渠道，增加解析" 后添加指定内容
             desc = desc.replace("修复酷我渠道，增加解析", "修复酷我渠道，增加解析（此修改版修改了歌词和评论获取api）");

@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install -y jq curl
           
           # 下载上游插件文件
-          curl -s -o upstream_wy.js "https://ghproxy.cn/raw.githubusercontent.com/ThomasBy2025/musicfree/main/plugins/wy.js"
+          curl -s -o upstream_wy.js "https://v6.gh-proxy.org/raw.githubusercontent.com/ThomasBy2025/musicfree/main/plugins/wy.js"
           
           # 使用 Node.js 提取版本号
           UPSTREAM_VERSION=$(node -e "
@@ -243,7 +243,7 @@ jobs:
       - name: Replace srcUrl
         run: |
           # 设置新的 srcUrl
-          new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/plugins/wy.js"
+          new_srcUrl="https://raw.jgithub.xyz/LmLanmei64/MusicFreePlugins/master/dist/wy.js"
           
           # 创建替换脚本文件
           cat > replace-srcurl.js << 'EOF'

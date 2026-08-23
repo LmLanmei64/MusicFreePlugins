@@ -27,7 +27,7 @@ async function getMusicComments(musicItem, page = 1) {
     const url = `${API_BASE}comment/music`;
     
     try {
-        const response = await axios.get(url, {
+        const response = await axios_1.default.get(url, {
             params: {
                 id: musicItem.id,
                 limit: limit,

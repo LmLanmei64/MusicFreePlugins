@@ -100,7 +100,7 @@ jobs:
       - name: Download wy.js
         run: |
           # 使用 wget 下载文件
-          wget -O wy.js "https://ghproxy.cn/raw.githubusercontent.com/ThomasBy2025/musicfree/main/plugins/wy.js"
+          wget -O wy.js "https://v6.gh-proxy.org/raw.githubusercontent.com/ThomasBy2025/musicfree/main/plugins/wy.js"
           
           # 验证下载结果
           if [ ! -f wy.js ]; then
@@ -118,8 +118,8 @@ jobs:
       - name: Download function definitions
         run: |
           # 使用新的 URL 下载函数定义文件
-          wget -O getLyric.txt "https://ghproxy.cn/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getLyric.txt"
-          wget -O getMusicComments.txt "https://ghproxy.cn/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getMusicComments.txt"
+          wget -O getLyric.txt "https://v6.gh-proxy.org/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getLyric.txt"
+          wget -O getMusicComments.txt "https://v6.gh-proxy.org/raw.githubusercontent.com/Lmlanmei64/MusicFreePlugins/master/getMusicComments.txt"
           
           # 验证下载结果
           for file in getLyric.txt getMusicComments.txt; do

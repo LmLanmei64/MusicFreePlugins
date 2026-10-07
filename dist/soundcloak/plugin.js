@@ -2,7 +2,7 @@ const axios = require('axios');
 
 module.exports = {
     platform: 'SoundCloak',
-    version: '0.0.3',
+    version: '0.0.4',
     author: 'Lm_蓝莓（辅助编写：Kimi）',
     srcUrl: 'https://fastly.jsdelivr.net/gh/LmLanmei64/MusicFreePlugins/dist/soundcloak/plugin.js',
     description: `
@@ -14,7 +14,7 @@ module.exports = {
 
 | key | 名称 | 是否必填 | 要求 |
 | --- | --- | --- | --- |
-| instanceUrl | SoundCloak 实例地址 | 必填 | 完整的 https 地址，例如 https://sc1.maid.zone ；末尾不要带斜杠；所选实例必须开启 API（EnableAPI = true） |
+| instanceUrl | SoundCloak 实例地址 | 必填 | 完整的 https 地址，例如 https://sc1.maid.zone；末尾不要带斜杠；所选实例必须开启 API（EnableAPI = true） |
 
 ### 插件功能列表
 
@@ -26,7 +26,7 @@ module.exports = {
 - URL 导入：支持导入单曲链接与歌单链接
 - 推荐标签与按标签搜索歌单
 - 歌词：暂不支持（返回空）
-- 榜单、评论：SoundCloak 当前 API 不可用，返回空结果不报错
+- 榜单：官方 Charts 选集，按地区（US/UK 等）分组，进入后展示对应流派榜\n- 评论：SoundCloak 未放行该端点，返回空结果不报错
 
 ### 实例地址获取教程
 
@@ -417,20 +417,62 @@ module.exports = {
         };
     },
 
-    // ==========================
-    // 以下端点经实测在 SoundCloak 上不可用，返回空结果避免报错
-    // ==========================
-
-    /** 获取榜单分类（不可用） */
+    /** 获取榜单列表（官方 Charts 选集，按地区分组） */
     async getTopLists() {
-        return [];
+        const baseUrl = this._getBaseUrl();
+        const res = await axios.get(`${baseUrl}/_/api/v2/charts/selections`);
+        const data = res.data;
+
+        const groups = [];
+        (data.collection || []).forEach(sel => {
+            const items = (sel.items?.collection || [])
+                .filter(p => p.kind === 'playlist' && p.id)
+                .map(p => {
+                    const rawArtwork = p.artwork_url || p.user?.avatar_url;
+                    return {
+                        id: String(p.id),
+                        title: p.title || 'Unknown',
+                        description: sel.title || '',
+                        coverImg: rawArtwork
+                            ? this._proxyImage(rawArtwork.replace('-large', '-t500x500'))
+                            : undefined,
+                        trackCount: p.track_count || 0,
+                        _playlistId: String(p.id),
+                        _chartTracks: null,
+                    };
+                });
+            if (items.length > 0) {
+                groups.push({ title: sel.title || 'Charts', data: items });
+            }
+        });
+
+        return groups;
     },
 
-    /** 获取榜单详情（不可用） */
+    /** 获取榜单详情（charts 返回的歌单为精简对象，需再取 playlists/{id} 补全曲目） */
     async getTopListDetail(topListItem, page) {
-        return { isEnd: true, musicList: [] };
+        const baseUrl = this._getBaseUrl();
+        let musicList;
+
+        if (page === 1 || !topListItem._chartTracks) {
+            const playlistId = topListItem._playlistId || topListItem.id;
+            const res = await axios.get(`${baseUrl}/_/api/v2/playlists/${playlistId}`);
+            musicList = await this._parseTracks(res.data.tracks || []);
+            try {
+                topListItem._chartTracks = musicList;
+            } catch (e) {}
+        } else {
+            musicList = topListItem._chartTracks;
+        }
+
+        return {
+            isEnd: true,
+            musicList,
+            topListItem
+        };
     },
 
+    // 评论端点未在 SoundCloak 代理放行列表中（实测参数解析错误），返回空结果避免报错
     /** 获取歌曲评论（不可用） */
     async getMusicComments(musicItem, page) {
         return { isEnd: true, data: [] };
